@@ -4,7 +4,7 @@ test_description='notes add-on funcionality
 '
 . ./test-lib.sh
 
-export TODO_ACTIONS_DIR=$TEST_DIRECTORY/../todo.actions.d
+export TODO_ACTIONS_DIR="/Users/isaac/Programacion/todo.txt-note"
 
 test_todo_session 'note show usage' <<EOF
 >>> todo.sh note show
@@ -28,8 +28,8 @@ EOF
 test_expect_code 0 'note add to task without note' 'echo n | todo.sh note add 1'
 
 # Get the added note, and the note's filename
-NOTE_TAG=$(grep -o "note:.*\.txt$" todo.txt)
-NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2)
+NOTE_TAG=$(grep -o "note:.*$" todo.txt)
+NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
 
 test_expect_success 'note add has created a file for the note' '[ -e notes/$NOTE_FILE ]'
 
@@ -41,13 +41,13 @@ EOF
 
 test_todo_session 'note show (task with existing note)' <<EOF
 >>> todo.sh note show 1
-# Buy tools
+# Buy tools $NOTE_TAG
 EOF
 
 export EDITOR=cat
 test_todo_session 'note edit task with existing note' <<EOF
 >>> todo.sh note edit 1
-# Buy tools
+# Buy tools $NOTE_TAG
 EOF
 
 test_todo_session 'do (and archive) task with note' <<EOF
@@ -65,8 +65,8 @@ test_expect_success 'Note content for archived task has been appended to the not
 echo n | todo.sh note add 1 > /dev/null
 
 # Get the added note, and the note's filename
-NOTE_TAG=$(grep -o "note:.*\.txt$" todo.txt)
-NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2)
+NOTE_TAG=$(grep -o "note:.*$" todo.txt)
+NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
 
 ARCHIVE_MD5=$(md5sum notes/archive.txt | cut -d\  -f1)
 
@@ -88,8 +88,8 @@ test_expect_success 'todo.sh rm <#item> deletes the note file' '[ ! -e notes/$NO
 echo n | todo.sh note add 1 > /dev/null
 
 # Get the added note, and the note's filename
-NOTE_TAG=$(grep -o "note:.*\.txt$" todo.txt)
-NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2)
+NOTE_TAG=$(grep -o "note:.*$" todo.txt)
+NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
 
 todo.sh rm 1 bike > /dev/null
 test_expect_success 'todo.sh rm <#item> <term> does not delete the note file' '[ -e notes/$NOTE_FILE ]'

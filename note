@@ -36,7 +36,11 @@ getnotenamefromtext() {
     # Postcondition:
     #     $notename contains note name, if task has note.
 
-    notename=$(echo "$1" | grep -o " $TODO_NOTE_TAG:[^ .]*${TODO_NOTE_EXT}" | grep -o "[^:]*${TODO_NOTE_EXT}")
+    notename=$(echo "$1" | grep -o " ${TODO_NOTE_TAG}:[^ .]*" | sed "s/^.*${TODO_NOTE_TAG}://")
+    if [ $notename ]
+    then
+        notename=$notename${TODO_NOTE_EXT}
+    fi
 }
 
 editnote() {
@@ -94,16 +98,18 @@ case "$TODO_NOTE_ACTION" in
     # Create notes directory if doesn't exist
     [ -d "$TODO_NOTES_DIR" ]  || mkdir -p "$TODO_NOTES_DIR" 2> /dev/null || die "Error: $TODO_NOTES_DIR is not a directory"
 
+
     # Create file
     filename=$(mktemp "$TODO_NOTES_DIR/${TODO_NOTE_TEMPLATE}")
-    notename=$(basename "$filename${TODO_NOTE_EXT}")
+    notetag=$(basename "$filename")
+    notename="$notetag${TODO_NOTE_EXT}"
     title=$(echo "$todo" | sed -e "s/^\(x ....-..-.. \)\?//" -e "s/^(.) \?//")
-    echo \# $title > "$TODO_NOTES_DIR/${notename}"
+    echo \# $title ${TODO_NOTE_TAG}:$notetag > "$TODO_NOTES_DIR/${notename}"
     # remove temp file created
     rm -f "${filename}"
 
     # Append note tag to task
-    sed -i.bak $item" s/$/ ${TODO_NOTE_TAG}:$notename/" "$TODO_FILE"
+    sed -i.bak $item" s/$/ ${TODO_NOTE_TAG}:$notetag/" "$TODO_FILE"
 
     getTodo "$item"
     echo $item $todo
@@ -150,4 +156,3 @@ case "$TODO_NOTE_ACTION" in
     ;;
 
 esac
-

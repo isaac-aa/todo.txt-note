@@ -1,10 +1,13 @@
 #!/bin/bash
 
+GIT_DIR=$(dirname $(realpath $0))/../
+
 test_description='notes add-on funcionality
 '
 . ./test-lib.sh
 
-export TODO_ACTIONS_DIR="/Users/isaac/Programacion/todo.txt-note"
+# For testing use the folder of the add-on source to include todo.txt-note
+export TODO_ACTIONS_DIR=$GIT_DIR
 
 test_todo_session 'note show usage' <<EOF
 >>> todo.sh note show

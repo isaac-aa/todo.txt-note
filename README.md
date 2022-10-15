@@ -31,7 +31,7 @@ When a task is deleted, its note (if any) is also also deleted.
 	2 Fix bicycle
 	--
 	TODO: 2 of 2 tasks shown
-	
+
 Say you're collecting recipes to prepare the cake from task 1 and want to write a note with the links to that recipes:
 
 	$ todo.sh note add 1
@@ -56,6 +56,21 @@ Perhaps you want to edit the note to add something else, then `todo.sh note edit
 ## Installation
 
 Copy the `archive`, `del` and `rm` files in this directory to your add-ons folder. Be aware that this add-on overrides the `archive`, `del` and `rm` commands. If you already have overriden some of them, you'll need to do some tweaking to combine both versions.
+
+## Contributing
+
+There are unittest for the implementation, make sure that when modifying the
+add-on they still pass
+Feel free to add more if required.
+
+For running them the source code for [todo.txt-cli](https://github.com/todotxt/todo.txt-cli) is needed, as it contains the
+testing library.
+Then:
+```
+> ln -s /path/to/todo.txt-note/tests/t2320-note.sh /path/to/todo.txt-cli/tests/t2320-note.sh
+> cd /path/to/todo.txt-cli/tests/
+> ./t2320-note.sh
+```
 
 ## Configuration
 

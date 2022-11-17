@@ -11,7 +11,7 @@ export TODO_ACTIONS_DIR=$GIT_DIR
 
 test_todo_session 'note show usage' <<EOF
 >>> todo.sh note show
-usage: todo.sh note show|s ITEM#|(archive|a [TAG])
+usage: todo.sh note show|s ITEM#|(archive|a [TAG|@context|+project])
 === 1
 EOF
 
@@ -35,7 +35,7 @@ NOTE_TAG=$(grep -o "note:.*$" todo.txt)
 TAG=${NOTE_TAG//note:/}
 NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
 
-# We avoid messing with the coloring options in the unittests
+# Avoid messing with the coloring options in the unittests
 export TODOTXT_PLAIN=1
 
 test_expect_success 'note add has created a file for the note' '[ -e notes/$NOTE_FILE ]'
@@ -77,9 +77,34 @@ test_todo_session 'Show a note from the archive' <<EOF
 # Buy tools $NOTE_TAG
 EOF
 
-test_todo_session 'Try to show an unexisting note from the archive' <<EOF
+# Populate the archive with a 'finished' task with both tag and context
+cat >> notes/archive.txt <<EOF
+# Please @test +notes
+EOF
+
+test_todo_session 'Show a note from the archive with context' <<EOF
+>>> todo.sh note show archive @test
+# Please @test +notes
+EOF
+
+test_todo_session 'Show a note from the archive with project' <<EOF
+>>> todo.sh note show archive +notes
+# Please @test +notes
+EOF
+
+test_todo_session 'Try to search unexisting tag from the note archive' <<EOF
 >>> todo.sh note show archive testest
-Note 'testest' not found in the archive
+Note with tag 'testest' not found in the archive
+EOF
+
+test_todo_session 'Try to search unexisting project from the note archive' <<EOF
+>>> todo.sh note show archive +testest
+Note with project 'testest' not found in the archive
+EOF
+
+test_todo_session 'Try to search unexisting context from the note archive' <<EOF
+>>> todo.sh note show archive @testest
+Note with context 'testest' not found in the archive
 EOF
 
 # Test do without archiving

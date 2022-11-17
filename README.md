@@ -20,7 +20,7 @@ When a done task is archived, the content of its note (if any) is appended to an
 
 * `note edit|e archive|a`. Opens in editor the notes' archive.
 * `note show|s archive|a`. Shows the full notes' archive.
-* `note show|s archive|a TAG`. Shows the archived entry of given TAG.
+* `note show|s archive|a TAG|@context|+project`. Shows the archived entry of given TAG, or those related with a given +project or @context.
 
 The archive file is the only way to access an archived task's note.
 The archive contains the note tag for each done task such that it can be navigated easily.

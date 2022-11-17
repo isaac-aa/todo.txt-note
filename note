@@ -200,19 +200,27 @@ case "$TODO_NOTE_ACTION" in
     ;;
 
 "show" | "s")
-    errmsg="usage: $TODO_SH $(basename $0) show|s ITEM#|(archive|a [TAG])"
+    errmsg="usage: $TODO_SH $(basename $0) show|s ITEM#|(archive|a [TAG|@context|+project])"
     case $1 in
     "archive" | "a")
+        getnotefilepath $1
         if [[ -z $2 ]]; then
-            getnotefilepath $*
             cat "$notefilepath" | _format
         else
-            getnotefilepath $*
-            text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${TODO_NOTE_TAG}:${2}/{flag=1}flag" "$notefilepath" | _format )
+            if [[ "$2" =~ ^@  || "$2" =~ ^\+ ]]; then
+                # Searches based on +projects or @contexts
+                text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${2/\+/\\+}/{flag=1}flag" "$notefilepath" | _format )
+            else
+                # Or just based on the tag
+                text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${TODO_NOTE_TAG}:${2}/{flag=1}flag" "$notefilepath" | _format )
+            fi
             if [[ "$text" ]]; then
                 echo "$text"
             else
-                echo "Note '${2}' not found in the archive"
+                str="Note with tag '${2}' not found in the archive"
+                str=${str/tag \'\+/project \'}
+                str=${str/tag \'@/context \'}
+                echo $str
             fi
         fi
         ;;

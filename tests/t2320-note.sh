@@ -11,7 +11,7 @@ export TODO_ACTIONS_DIR=$GIT_DIR
 
 test_todo_session 'note show usage' <<EOF
 >>> todo.sh note show
-usage: todo.sh note show|s ITEM#|archive|a
+usage: todo.sh note show|s ITEM#|(archive|a [TAG])
 === 1
 EOF
 
@@ -32,7 +32,11 @@ test_expect_code 0 'note add to task without note' 'echo n | todo.sh note add 1'
 
 # Get the added note, and the note's filename
 NOTE_TAG=$(grep -o "note:.*$" todo.txt)
+TAG=${NOTE_TAG//note:/}
 NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
+
+# We avoid messing with the coloring options in the unittests
+export TODOTXT_PLAIN=1
 
 test_expect_success 'note add has created a file for the note' '[ -e notes/$NOTE_FILE ]'
 
@@ -63,6 +67,20 @@ EOF
 
 test_expect_success 'The note file related with archived task does not exist anymore' '[ ! -e notes/$NOTE_FILE ]'
 test_expect_success 'Note content for archived task has been appended to the notes archive' 'grep "Buy tools" notes/archive.txt'
+test_todo_session 'Show the archive' <<EOF
+>>> todo.sh note show archive
+# Buy tools $NOTE_TAG
+EOF
+
+test_todo_session 'Show a note from the archive' <<EOF
+>>> todo.sh note show archive $TAG
+# Buy tools $NOTE_TAG
+EOF
+
+test_todo_session 'Try to show an unexisting note from the archive' <<EOF
+>>> todo.sh note show archive testest
+Note 'testest' not found in the archive
+EOF
 
 # Test do without archiving
 echo n | todo.sh note add 1 > /dev/null

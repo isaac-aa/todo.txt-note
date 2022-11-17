@@ -65,7 +65,7 @@ getnotefilepath () {
 
     if [[ "$item" ]] && [[ archive =~ ^${item}.*$ ]]
     then
-        notefilepath=$TODO_NOTE_ARCHIVE
+        notefilepath="$TODO_NOTE_ARCHIVE"
     else
         getnotenamefromnumber $1
 
@@ -76,6 +76,76 @@ getnotefilepath () {
             die "TODO: Task $item has no note."
         fi
     fi
+}
+
+_format () {
+    # Takes the stdin and format it.
+    # This is taken from the _format function of todo.sh, so that the
+    # color and style is the same and can be customized using the same
+    # variables.
+    # However, it was augmented to always print the task names using
+    # COLOR_DONE
+    awk '''
+            function highlight(colorVar,      color) {
+                color = ENVIRON[colorVar]
+                gsub(/\\+033/, "\033", color)
+                return color
+            }
+            {
+                clr = ""
+                if (match($0, /^[0-9]+ x /)) {
+                    clr = highlight("COLOR_DONE")
+                } else if (match($0, /^[0-9]+ \([A-Z]\) /)) {
+                    clr = highlight("PRI_" substr($0, RSTART + RLENGTH - 3, 1))
+                    clr = (clr ? clr : highlight("PRI_X"))
+                    if (ENVIRON["HIDE_PRIORITY_SUBSTITUTION"] != "") {
+                        $0 = substr($0, 1, RLENGTH - 4) substr($0, RSTART + RLENGTH)
+                    }
+                }
+                head_beg = highlight("COLOR_DONE")
+                head_end = (head_beg ? (highlight("DEFAULT") clr) : "")
+
+                prj_beg = highlight("COLOR_PROJECT")
+                prj_end = (prj_beg ? (highlight("DEFAULT") clr) : "")
+
+                ctx_beg = highlight("COLOR_CONTEXT")
+                ctx_end = (ctx_beg ? (highlight("DEFAULT") clr) : "")
+
+                dat_beg = highlight("COLOR_DATE")
+                dat_end = (dat_beg ? (highlight("DEFAULT") clr) : "")
+
+                num_beg = highlight("COLOR_NUMBER")
+                num_end = (num_beg ? (highlight("DEFAULT") clr) : "")
+
+                met_beg = highlight("COLOR_META")
+                met_end = (met_beg ? (highlight("DEFAULT") clr) : "")
+
+                gsub(/[ \t][ \t]*/, "\n&\n")
+                len = split($0, words, /\n/)
+
+                printf "%s", clr
+                for (i = 1; i <= len; ++i) {
+                    if (i == 1 && words[i] ~ /^[0-9]+$/ ) {
+                        printf "%s", num_beg words[i] num_end
+                    } else if (words[i] ~ /^[+].*[A-Za-z0-9_]$/) {
+                        printf "%s", prj_beg words[i] prj_end
+                    } else if (words[i] ~ /^[@].*[A-Za-z0-9_]$/) {
+                        printf "%s", ctx_beg words[i] ctx_end
+                    } else if (words[i] ~ /^(19|20)[0-9][0-9]-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$/) {
+                        printf "%s", dat_beg words[i] dat_end
+                    } else if (words[i] ~ /^[A-Za-z0-9]+:[^ ]+$/) {
+                        printf "%s", met_beg words[i] met_end
+                    } else {
+                        if (words[1] ~ /^#/) {
+                            printf "%s", head_beg words[i] head_end
+                        } else {
+                            printf "%s", words[i]
+                        }
+                    }
+                }
+                printf "\n"
+            }
+      '''
 }
 
 if [ "$1" = "usage" ]
@@ -130,9 +200,27 @@ case "$TODO_NOTE_ACTION" in
     ;;
 
 "show" | "s")
-    errmsg="usage: $TODO_SH $(basename $0) show|s ITEM#|archive|a"
-    getnotefilepath $*
-    cat "$notefilepath"
+    errmsg="usage: $TODO_SH $(basename $0) show|s ITEM#|(archive|a [TAG])"
+    case $1 in
+    "archive" | "a")
+        if [[ -z $2 ]]; then
+            getnotefilepath $*
+            cat "$notefilepath" | _format
+        else
+            getnotefilepath $*
+            text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${TODO_NOTE_TAG}:${2}/{flag=1}flag" "$notefilepath" | _format )
+            if [[ "$text" ]]; then
+                echo "$text"
+            else
+                echo "Note '${2}' not found in the archive"
+            fi
+        fi
+        ;;
+    *)
+        getnotefilepath $*
+        cat "$notefilepath" | _format
+        ;;
+    esac
     ;;
 
 "__archive")
@@ -141,7 +229,6 @@ case "$TODO_NOTE_ACTION" in
     if [ $notename ]
     then
         cat "$TODO_NOTES_DIR/${notename}" >> "$TODO_NOTE_ARCHIVE"
-        echo >> "$TODO_NOTE_ARCHIVE" ## Add blank line
         rm -f "$TODO_NOTES_DIR/${notename}"
     fi
     ;;

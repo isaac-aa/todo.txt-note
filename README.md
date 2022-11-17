@@ -11,12 +11,16 @@ The idea behind this repository is to improve and maintain this great note add-o
 * `note edit|e ITEM#`. Opens the note related with task ITEM# in editor.
 * `note show|s ITEM#`. Shows the note related with task ITEM#.
 
+The shown notes will be highlighted in as done by todo.sh, plus it will highlight
+the name of the task for easier navigation.
+
 ## The notes' archive
 
 When a done task is archived, the content of its note (if any) is appended to an archive file. This archive can be viewed or edited with the `show` and `edit` operations:
 
 * `note edit|e archive|a`. Opens in editor the notes' archive.
-* `note show|s archive|a`. Shows the notes' archive.
+* `note show|s archive|a`. Shows the full notes' archive.
+* `note show|s archive|a TAG`. Shows the archived entry of given TAG.
 
 The archive file is the only way to access an archived task's note.
 The archive contains the note tag for each done task such that it can be navigated easily.

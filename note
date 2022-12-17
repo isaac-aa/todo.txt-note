@@ -212,7 +212,7 @@ case "$TODO_NOTE_ACTION" in
                 text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${2/\+/\\+}/{flag=1}flag" "$notefilepath" | _format )
             else
                 # Or just based on the tag
-                text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${TODO_NOTE_TAG}:${2}/{flag=1}flag" "$notefilepath" | _format )
+                text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${TODO_NOTE_TAG}:${2} /{flag=1}flag" "$notefilepath" | _format )
             fi
             if [[ "$text" ]]; then
                 echo "$text"

@@ -78,6 +78,23 @@ getnotefilepath () {
     fi
 }
 
+getsearchresult () {
+    # Parameter:: $1: note file to be processed
+    # Parameter:: $2: search string. It can be either a task tag, date, context or project
+    # Preconditions:
+    # Postcondition: $searchresult contains the matching note fragments, empty is nothing is found
+    if [[ "$2" =~ ^@  || "$2" =~ ^\+ ]]; then
+        # Searches based on +projects or @contexts
+        searchresult=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${2/\+/\\+}/{flag=1}flag" "$1" | _format )
+    elif [[ "$2" =~ ^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$ ]]; then
+        # Searches based on dates
+        searchresult=$(awk "/^#.*/{flag=0}/^#.*${2}/{flag=1}flag" "$1" | _format )
+    else
+        # Or just based on the tag
+        searchresult=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${TODO_NOTE_TAG}:${2}\>/{flag=1}flag" "$1" | _format )
+    fi
+}
+
 _format () {
     # Takes the stdin and format it.
     # This is taken from the _format function of todo.sh, so that the
@@ -164,7 +181,7 @@ case "$TODO_NOTE_ACTION" in
     getnotenamefromnumber $1
 
     [ $notename ] && die "TODO: Task $item already has a note."
-    
+
     # Create notes directory if doesn't exist
     [ -d "$TODO_NOTES_DIR" ]  || mkdir -p "$TODO_NOTES_DIR" 2> /dev/null || die "Error: $TODO_NOTES_DIR is not a directory"
 
@@ -201,34 +218,34 @@ case "$TODO_NOTE_ACTION" in
 
 "show" | "s")
     errmsg="usage: $TODO_SH $(basename $0) show|s ITEM#|(archive|a [TAG|@context|+project])"
-    case $1 in
-    "archive" | "a")
+    if [[ $1 =~ (^archive$)|(^a$) ]]; then
+        # Print/search the archive of finished tasks
         getnotefilepath $1
         if [[ -z $2 ]]; then
+            # Print the whole archive
             cat "$notefilepath" | _format
         else
-            if [[ "$2" =~ ^@  || "$2" =~ ^\+ ]]; then
-                # Searches based on +projects or @contexts
-                text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${2/\+/\\+}/{flag=1}flag" "$notefilepath" | _format )
-            else
-                # Or just based on the tag
-                text=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${TODO_NOTE_TAG}:${2} /{flag=1}flag" "$notefilepath" | _format )
-            fi
-            if [[ "$text" ]]; then
-                echo "$text"
-            else
-                str="Note with tag '${2}' not found in the archive"
-                str=${str/tag \'\+/project \'}
-                str=${str/tag \'@/context \'}
-                echo $str
+            # or search it
+            getsearchresult $notefilepath $2
+            if [[ "$searchresult" ]]; then
+                echo "$searchresult"
             fi
         fi
-        ;;
-    *)
-        getnotefilepath $*
+    elif [[ "$1" =~ ^[0-9]+$ ]]; then
+        # Print the note associated with a task number
+        getnotefilepath $1
         cat "$notefilepath" | _format
-        ;;
-    esac
+    else
+        # Do the search on all the notes, including those tasks that are
+        # not yet completed
+        notes=$(ls $TODO_NOTES_DIR/*)
+        for note in $notes ; do
+            getsearchresult "$note" $1
+            if [[ "$searchresult" ]]; then
+                echo "$searchresult"
+            fi
+        done
+    fi
     ;;
 
 "__archive")

@@ -11,7 +11,7 @@ export TODO_ACTIONS_DIR=$GIT_DIR
 
 test_todo_session 'note show usage' <<EOF
 >>> todo.sh note show
-usage: todo.sh note show|s ITEM#|(archive|a [TAG|@context|+project])
+usage: todo.sh note show|s ITEM#|(archive|a [TAG|@context|+project|yyyy-mm-dd])
 === 1
 EOF
 
@@ -94,17 +94,17 @@ EOF
 
 test_todo_session 'Try to search unexisting tag from the note archive' <<EOF
 >>> todo.sh note show archive testest
-Note with tag 'testest' not found in the archive
+There is no note with 'testest' in the archive
 EOF
 
 test_todo_session 'Try to search unexisting project from the note archive' <<EOF
 >>> todo.sh note show archive +testest
-Note with project 'testest' not found in the archive
+There is no note with '+testest' in the archive
 EOF
 
 test_todo_session 'Try to search unexisting context from the note archive' <<EOF
 >>> todo.sh note show archive @testest
-Note with context 'testest' not found in the archive
+There is no note with '@testest' in the archive
 EOF
 
 # Test do without archiving

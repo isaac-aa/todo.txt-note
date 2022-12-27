@@ -217,7 +217,7 @@ case "$TODO_NOTE_ACTION" in
     ;;
 
 "show" | "s")
-    errmsg="usage: $TODO_SH $(basename $0) show|s ITEM#|(archive|a [TAG|@context|+project])"
+    errmsg="usage: $TODO_SH $(basename $0) show|s ITEM#|(archive|a [TAG|@context|+project|yyyy-mm-dd])"
     if [[ $1 =~ (^archive$)|(^a$) ]]; then
         # Print/search the archive of finished tasks
         getnotefilepath $1
@@ -226,11 +226,15 @@ case "$TODO_NOTE_ACTION" in
             cat "$notefilepath" | _format
         else
             # or search it
-            getsearchresult $notefilepath $2
-            if [[ "$searchresult" ]]; then
+            getsearchresult "$notefilepath" $2
+            if [[ -z "$searchresult" ]]; then
+                echo "There is no note with '${2}' in the archive"
+            else
                 echo "$searchresult"
             fi
         fi
+    elif [[ -z $1 ]]; then
+        die $errmsg
     elif [[ "$1" =~ ^[0-9]+$ ]]; then
         # Print the note associated with a task number
         getnotefilepath $1
@@ -241,10 +245,14 @@ case "$TODO_NOTE_ACTION" in
         notes=$(ls $TODO_NOTES_DIR/*)
         for note in $notes ; do
             getsearchresult "$note" $1
-            if [[ "$searchresult" ]]; then
+            if [[ ! -z "$searchresult" ]]; then
                 echo "$searchresult"
+                found="yes"
             fi
         done
+        if [[ -z "$found" ]]; then
+            echo "There is no note with '${1}' "
+        fi
     fi
     ;;
 

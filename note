@@ -5,6 +5,7 @@ TODO_NOTE_TAG=${TODO_NOTE_TAG:-note}
 TODO_NOTE_TEMPLATE=${TODO_NOTE_TEMPLATE:-XXX}
 TODO_NOTE_EXT=${TODO_NOTE_EXT:-.txt}
 TODO_NOTE_ARCHIVE="$TODO_NOTES_DIR/archive$TODO_NOTE_EXT"
+datebin=${TODO_TEST_REAL_DATE:-date}
 
 usage() {
     echo "    $(basename $0) add|a ITEM#"
@@ -190,8 +191,13 @@ case "$TODO_NOTE_ACTION" in
     filename=$(mktemp "$TODO_NOTES_DIR/${TODO_NOTE_TEMPLATE}")
     notetag=$(basename "$filename")
     notename="$notetag${TODO_NOTE_EXT}"
+    # Remove the completition mark and date, and priority
     title=$(echo "$todo" | sed -e "s/^\(x ....-..-.. \)\?//" -e "s/^(.) \?//")
-    echo \# $title ${TODO_NOTE_TAG}:$notetag > "$TODO_NOTES_DIR/${notename}"
+    # If not present, add the current date to the title
+    if [[ ! $title =~ ....-..-.. ]]; then
+        today=$($datebin +%Y-%m-%d)
+    fi
+    echo \# $today $title ${TODO_NOTE_TAG}:$notetag > "$TODO_NOTES_DIR/${notename}"
     # remove temp file created
     rm -f "${filename}"
 
@@ -215,15 +221,14 @@ case "$TODO_NOTE_ACTION" in
     getnotefilepath $*
     # NB: if using the testing environment 'date' does no longer
     # point to the system default
-    datebin=${TODO_TEST_REAL_DATE:-date}
     lastmod=$($datebin --debug --reference="$notefilepath" +%Y-%m-%d)
-    current=$($datebin +%Y-%m-%d)
-    if [[ $lastmod != $current ]]; then
+    today=$($datebin +%Y-%m-%d)
+    if [[ $lastmod != $today ]]; then
         echo "Note has not been edited today, add 'date' header? (y/n)"
         read ANSWER
         if [ "$ANSWER" = "y" ]
         then
-            echo -e "\n# $current\n\n" >> $notefilepath
+            echo -e "\n# $today\n\n" >> "$notefilepath"
         fi
     fi
     editnote "$notefilepath"

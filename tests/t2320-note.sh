@@ -15,7 +15,24 @@ usage: todo.sh note show|s ITEM#|(archive|a [TAG|@context|+project|yyyy-mm-dd])
 === 1
 EOF
 
-TEST_TASK_1="Buy tools @hammer +shovel"
+getnotedetails() {
+    # Parameters:
+    #    $1: task number
+    # Preconditions: none
+    # Postcondition:
+    #     $NOTE_TAG contains the key and tag
+    #     $TAG contains only the tag
+    #     $NOTE_FILE contains the file containing the note
+    NOTE_TAG=$(sed -n "${1}p" todo.txt | grep -o "note:.*$")
+    TAG=${NOTE_TAG//note:/}
+    NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
+}
+
+
+today=$($TODO_TEST_REAL_DATE +%Y-%m-%d)
+export EDITOR=cat
+
+TEST_TASK_1="$today Buy tools @hammer +shovel"
 TEST_TASK_2="Fix bicycle"
 TEST_TASK_3="Ride bike"
 
@@ -23,7 +40,6 @@ cat > todo.txt <<EOF
 $TEST_TASK_1
 $TEST_TASK_2
 $TEST_TASK_3
-Ride bike
 EOF
 
 test_todo_session 'note show on task with no note' <<EOF
@@ -36,20 +52,30 @@ EOF
 test_expect_code 0 'note add to task without note' 'echo n | todo.sh note add 1'
 
 # Get the added note, and the note's filename
-NOTE_TAG=$(grep -o "note:.*$" todo.txt)
-TAG=${NOTE_TAG//note:/}
-NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
+getnotedetails 1
 
 # Avoid messing with the coloring options in the unittests
 export TODOTXT_PLAIN=1
 
 test_expect_success 'note add has created a file for the note' '[ -e notes/$NOTE_FILE ]'
 
+test_expect_code 0 'note add to task without creation date' 'echo n | todo.sh note add 2'
+
+getnotedetails 2
+NOTE_TAG_2=$NOTE_TAG
+
+test_todo_session 'note check the addition of creation date' <<EOF
+>>> todo.sh note show 2
+# $today $TEST_TASK_2 $NOTE_TAG_2
+EOF
+
 test_todo_session 'note add to task with existing note' <<EOF
 >>> todo.sh note add 1
 TODO: Task 1 already has a note.
 === 1
 EOF
+
+getnotedetails 1
 
 test_todo_session 'note show (task with existing note)' <<EOF
 >>> todo.sh note show 1
@@ -71,17 +97,15 @@ test_todo_session 'note show (task with existing note) using project' <<EOF
 # $TEST_TASK_1 $NOTE_TAG
 EOF
 
-export EDITOR=cat
 test_todo_session 'note edit task with existing note' <<EOF
 >>> todo.sh note edit 1
 # $TEST_TASK_1 $NOTE_TAG
 EOF
 
-touch -d "1 day ago" $NOTE_FILE
-today=$($TODO_TEST_REAL_DATE +%Y-%m-%d)
+touch -d "2 day ago" notes/$NOTE_FILE
 test_todo_session 'note edit task with existing old note' <<EOF
->>> echo y | todo.sh note edit 1
-# $TEST_TASK_1 $NOTE_TAG
+>>> echo y | todo.sh note edit 2
+# $today $TEST_TASK_2 $NOTE_TAG_2
 
 # $today
 
@@ -140,9 +164,7 @@ EOF
 # Test do without archiving
 echo n | todo.sh note add 1 > /dev/null
 
-# Get the added note, and the note's filename
-NOTE_TAG=$(grep -o "note:.*$" todo.txt)
-NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
+getnotedetails 1
 
 ARCHIVE_MD5=$(md5sum notes/archive.txt | cut -d\  -f1)
 
@@ -163,9 +185,7 @@ test_expect_success 'todo.sh rm <#item> deletes the note file' '[ ! -e notes/$NO
 # Test rm hook (rm #item #term)
 echo n | todo.sh note add 1 > /dev/null
 
-# Get the added note, and the note's filename
-NOTE_TAG=$(grep -o "note:.*$" todo.txt)
-NOTE_FILE=$(echo $NOTE_TAG | cut -d: -f2).txt
+getnotedetails 1
 
 todo.sh rm 1 bike > /dev/null
 test_expect_success 'todo.sh rm <#item> <term> does not delete the note file' '[ -e notes/$NOTE_FILE ]'

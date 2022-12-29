@@ -213,6 +213,19 @@ case "$TODO_NOTE_ACTION" in
 "edit" | "e")
     errmsg="usage: $TODO_SH $(basename $0) edit|e ITEM#|archive|a"
     getnotefilepath $*
+    # NB: if using the testing environment 'date' does no longer
+    # point to the system default
+    datebin=${TODO_TEST_REAL_DATE:-date}
+    lastmod=$($datebin --debug --reference="$notefilepath" +%Y-%m-%d)
+    current=$($datebin +%Y-%m-%d)
+    if [[ $lastmod != $current ]]; then
+        echo "Note has not been edited today, add 'date' header? (y/n)"
+        read ANSWER
+        if [ "$ANSWER" = "y" ]
+        then
+            echo -e "\n# $current\n\n" >> $notefilepath
+        fi
+    fi
     editnote "$notefilepath"
     ;;
 

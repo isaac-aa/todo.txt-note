@@ -57,6 +57,16 @@ test_todo_session 'note edit task with existing note' <<EOF
 # Buy tools $NOTE_TAG
 EOF
 
+touch -d "1 day ago" $NOTE_FILE
+today=$($TODO_TEST_REAL_DATE +%Y-%m-%d)
+test_todo_session 'note edit task with existing old note' <<EOF
+>>> echo y | todo.sh note edit 1
+# Buy tools $NOTE_TAG
+
+# $today
+
+EOF
+
 test_todo_session 'do (and archive) task with note' <<EOF
 >>> todo.sh do 1
 1 x 2009-02-13 Buy tools $NOTE_TAG

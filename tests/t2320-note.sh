@@ -56,6 +56,21 @@ test_todo_session 'note show (task with existing note)' <<EOF
 # $TEST_TASK_1 $NOTE_TAG
 EOF
 
+test_todo_session 'note show (task with existing note) using tag' <<EOF
+>>> todo.sh note show $TAG
+# $TEST_TASK_1 $NOTE_TAG
+EOF
+
+test_todo_session 'note show (task with existing note) using context' <<EOF
+>>> todo.sh note show @hammer
+# $TEST_TASK_1 $NOTE_TAG
+EOF
+
+test_todo_session 'note show (task with existing note) using project' <<EOF
+>>> todo.sh note show +shovel
+# $TEST_TASK_1 $NOTE_TAG
+EOF
+
 export EDITOR=cat
 test_todo_session 'note edit task with existing note' <<EOF
 >>> todo.sh note edit 1

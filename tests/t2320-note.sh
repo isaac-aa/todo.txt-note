@@ -15,9 +15,14 @@ usage: todo.sh note show|s ITEM#|(archive|a [TAG|@context|+project|yyyy-mm-dd])
 === 1
 EOF
 
+TEST_TASK_1="Buy tools @hammer +shovel"
+TEST_TASK_2="Fix bicycle"
+TEST_TASK_3="Ride bike"
+
 cat > todo.txt <<EOF
-Buy tools
-Fix bicycle
+$TEST_TASK_1
+$TEST_TASK_2
+$TEST_TASK_3
 Ride bike
 EOF
 
@@ -48,20 +53,20 @@ EOF
 
 test_todo_session 'note show (task with existing note)' <<EOF
 >>> todo.sh note show 1
-# Buy tools $NOTE_TAG
+# $TEST_TASK_1 $NOTE_TAG
 EOF
 
 export EDITOR=cat
 test_todo_session 'note edit task with existing note' <<EOF
 >>> todo.sh note edit 1
-# Buy tools $NOTE_TAG
+# $TEST_TASK_1 $NOTE_TAG
 EOF
 
 touch -d "1 day ago" $NOTE_FILE
 today=$($TODO_TEST_REAL_DATE +%Y-%m-%d)
 test_todo_session 'note edit task with existing old note' <<EOF
 >>> echo y | todo.sh note edit 1
-# Buy tools $NOTE_TAG
+# $TEST_TASK_1 $NOTE_TAG
 
 # $today
 
@@ -69,9 +74,9 @@ EOF
 
 test_todo_session 'do (and archive) task with note' <<EOF
 >>> todo.sh do 1
-1 x 2009-02-13 Buy tools $NOTE_TAG
+1 x 2009-02-13 $TEST_TASK_1 $NOTE_TAG
 TODO: 1 marked as done.
-x 2009-02-13 Buy tools $NOTE_TAG
+x 2009-02-13 $TEST_TASK_1 $NOTE_TAG
 TODO: $HOME/todo.txt archived.
 EOF
 
@@ -79,12 +84,12 @@ test_expect_success 'The note file related with archived task does not exist any
 test_expect_success 'Note content for archived task has been appended to the notes archive' 'grep "Buy tools" notes/archive.txt'
 test_todo_session 'Show the archive' <<EOF
 >>> todo.sh note show archive
-# Buy tools $NOTE_TAG
+# $TEST_TASK_1 $NOTE_TAG
 EOF
 
 test_todo_session 'Show a note from the archive' <<EOF
 >>> todo.sh note show archive $TAG
-# Buy tools $NOTE_TAG
+# $TEST_TASK_1 $NOTE_TAG
 EOF
 
 # Populate the archive with a 'finished' task with both tag and context

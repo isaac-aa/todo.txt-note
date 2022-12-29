@@ -255,17 +255,17 @@ case "$TODO_NOTE_ACTION" in
     else
         # Do the search on all the notes, including those tasks that are
         # not yet completed
-        notes=$(ls $TODO_NOTES_DIR/*)
-        for note in $notes ; do
+        find "$TODO_NOTES_DIR" -iname "*${TODO_NOTE_EXT}" | ( while read note
+        do
             getsearchresult "$note" $1
             if [[ ! -z "$searchresult" ]]; then
                 echo "$searchresult"
-                found="yes"
+                found=1
             fi
         done
-        if [[ -z "$found" ]]; then
+        if [[ ! $found = 1 ]]; then
             echo "There is no note with '${1}' "
-        fi
+        fi )
     fi
     ;;
 

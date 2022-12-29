@@ -97,6 +97,11 @@ test_todo_session 'note show (task with existing note) using project' <<EOF
 # $TEST_TASK_1 $NOTE_TAG
 EOF
 
+test_todo_session 'note show (task with existing note) using unexisting tag' <<EOF
+>>> todo.sh note show nothing
+There is no note with 'nothing'
+EOF
+
 test_todo_session 'note edit task with existing note' <<EOF
 >>> todo.sh note edit 1
 # $TEST_TASK_1 $NOTE_TAG

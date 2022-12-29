@@ -269,7 +269,7 @@ case "$TODO_NOTE_ACTION" in
             fi
         done
         if [[ ! $found = 1 ]]; then
-            echo "There is no note with '${1}' "
+            echo "There is no note with '${1}'"
         fi )
     fi
     ;;

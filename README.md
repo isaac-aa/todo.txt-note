@@ -12,62 +12,77 @@ Let's exemplify the usefulness of the `todo.sh` and `note` combination.
 Some tasks are fast and easy, such as "Send an email to Bob".
 But others require more work, and there is no way in `todo.sh` to keep track of that. Until `note`.
 
-Imagine that you have to implement something, you do
+Imagine that you have to do a longer task. For example, implement a feature in a code.
 ```
-todo.sh add Implement feature A +project
+> todo.sh add Implement feature A +project
 ```
 This task may take longer than one day and may even involve some trials and errors.
-How to keep track of all this? A notebook? no:
+How to keep track of all this? A physical notebook? No, a `note`:
 ```
 > todo.sh note add 1
+# 2022-12-30 Implement feature A +project note:FZA
 ```
-And then keep adding changes as
+The `note:FZA` key-value pair is the unique identifier of this task from now on.
+As every task has a unique identifier associated with it, you can do cross-references.
+Then, you can use the note as a diary on the progress of the task:
 ```
 > todo.sh note edit 1
-Add some text here!
-```
-Later, you can see the note associated with each task or look for given context/projects.
-```
-> todo.sh show 1
-Add some text here!
-or
-> todo.sh show +project
-Add some text here!
+
+I want to implement feature A using as a base [...].
+I have some ideas about how to proceed [...]
 ```
 
-Also, now every task has a unique identifier associated with it, so you can even do cross-references!
+If completing the task takes longer than one day, further edits will be added with date tags:
+```
+> todo.sh note edit 1
+Note has not been edited today, add 'date' header? (y/n) y
+# 2022-12-31
+
+I tried to do X but did not work because [...]
+```
+
+Later, you can see the note associated with each task or look for given context/projects:
+```
+> todo.sh note show 1
+> todo.sh note show +project
+> todo.sh note show FZA
+```
+Or even what you did in a given day
+```
+> todo.sh note show 2022-12-31
+# 2022-12-31
+
+I tried to do X but did not work because [...]
+```
+
 Once finished, the note contents are archived and are still searchable.
 ```
-> todo.sh show a +project
-Add some text here!
-```
-As a nice feature, you can search for partial notes based on dates.
-So if someone asks you what you did do last week, note got you covered.
-```
-> todo.sh show 2022-10-02
-Something that you did in one task that day
+> todo.sh note show archive +project
+> todo.sh note show archive FZA
+> todo.sh note show archive 2022-12-31
 ```
 
-Enough advertisement! Below is detailed documentation. Feel free to post issues and pull requests.
+Enough advertisement! Below is detailed documentation.
+Feel free to post issues and pull requests.
 
 ## Adding, viewing and editing notes
 
 * `note add|a ITEM#`. Adds a new note to task ITEM# and gives the chance to edit it.
 * `note edit|e ITEM#`. Opens the note related with task ITEM# in editor.
-* `note show|s ITEM#|(archive|a [TAG|@context|+project|yyyy-mm-dd])`. Shows the note related with task ITEM# or the archive.
-  a task TAG, context, project or date can be specified. For example, to look for the contents of notes added a given day: `note s 2023-01-01`.
+* `note show|s ITEM#|([archive|a] [TAG|@context|+project|yyyy-mm-dd])`. Shows the note related with task ITEM# or the archive.
+  A task TAG, context, project or date can be specified. For example, to look for the contents of notes added a given day: `note s 2023-01-01`.
   The search can be restricted to already finished tasks with `note s archive 2023-01-01`.
 
-The shown notes will be highlighted in as done by todo.sh, plus it will highlight
-the name of the task for easier navigation.
+The shown notes will be highlighted using the same criteria than `todo.sh`.
+In addition, the task names are also highlighted for easier navigation.
 
 ## The notes' format
 
-A note is a simple plain text file, with extension TODO_NOTE_EXT.
+A note is a simple plain text file, with extension `TODO_NOTE_EXT`.
 It has sections delimited by lines starting with `# yyyy-mm-dd`.
 Until the next section, all the text will be assigned to that task, in that given day.
 
-An example note would be
+An example note would be:
 ```
 # 2022-12-14 Do something id:RJUg6
 
@@ -86,7 +101,8 @@ Context, projects and key:value pairs are allowed in the text, and will be highl
 
 ## The notes' archive
 
-When a done task is archived, the content of its note (if any) is appended to an archive file. This archive can be viewed or edited with the `show` and `edit` operations.
+When a done task is archived, the content of its note (if any) is appended to an archive file.
+This archive can be viewed or edited with the `show` and `edit` operations.
 
 The archive file is the only way to access an archived task's note.
 The archive contains the note tag for each done task such that it can be navigated easily.
@@ -97,7 +113,9 @@ When a task is deleted, its note (if any) are also also deleted.
 
 ## Installation
 
-Copy the `note` `archive`, `del` and `rm` files in this directory to your add-ons folder. Be aware that this add-on overrides the `archive`, `del` and `rm` commands. If you already have overriden some of them, you'll need to do some tweaking to combine both versions.
+Copy the `note` `archive`, `del` and `rm` files in this directory to your add-ons folder.
+Be aware that this add-on overrides the `archive`, `del` and `rm` commands.
+If you already have overwritten some of them, you'll need to do some tweaking to combine both versions.
 
 ## Configuration
 

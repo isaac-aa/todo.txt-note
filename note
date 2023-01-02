@@ -89,7 +89,33 @@ getsearchresult () {
         searchresult=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${2/\+/\\+}/{flag=1}flag" "$1" | _format )
     elif [[ "$2" =~ ^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$ ]]; then
         # Searches based on dates
-        searchresult=$(awk "/^#.*/{flag=0}/^#.*${2}/{flag=1}flag" "$1" | _format )
+        searchresult=$(awk -v search=$2 -v notetag=${TODO_NOTE_TAG} '''
+                                        {
+                                          if ($0 ~ /^#.*/){ # Start of a new section
+                                              flag=0
+
+                                              # Get the name of the task without date and priority
+                                              if ($0 ~ notetag){
+                                                  header=$0
+                                                  sub(/^#.*....-..-../,  search, header)
+                                              }
+
+                                              # If this section matches the date, start printing
+                                              if ($0 ~ search){
+                                                  flag=1
+                                              }
+                                          }
+                                          if (flag){
+                                              if ($0 ~ /^#/){
+                                                  # Print a modified header with the search date and the task name
+                                                  print "# " header
+                                              } else {
+                                                  print $0
+                                              }
+                                          }
+
+                                        }
+                                        ''' "$1" | _format )
     else
         # Or just based on the tag
         searchresult=$(awk "/^#.*${TODO_NOTE_TAG}:/{flag=0}/^#.*${TODO_NOTE_TAG}:${2}\>/{flag=1}flag" "$1" | _format )

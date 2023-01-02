@@ -63,6 +63,7 @@ test_expect_code 0 'note add to task without creation date' 'echo n | todo.sh no
 
 getnotedetails 2
 NOTE_TAG_2=$NOTE_TAG
+NOTE_FILE_2=$NOTE_FILE
 
 test_todo_session 'note check the addition of creation date' <<EOF
 >>> todo.sh note show 2
@@ -107,13 +108,17 @@ test_todo_session 'note edit task with existing note' <<EOF
 # $TEST_TASK_1 $NOTE_TAG
 EOF
 
-touch -d "2 day ago" notes/$NOTE_FILE
+touch -d "2 day ago" notes/$NOTE_FILE_2
 test_todo_session 'note edit task with existing old note' <<EOF
->>> echo y | todo.sh note edit 2
+>>> echo y | todo.sh note edit 2 | grep $today
 # $today $TEST_TASK_2 $NOTE_TAG_2
-
 # $today
+EOF
 
+echo "# 2022-12-01" >> notes/$NOTE_FILE_2
+test_todo_session 'note show (task with existing note) using date' <<EOF
+>>> todo.sh note show 2022-12-01
+# 2022-12-01 $TEST_TASK_2 $NOTE_TAG_2
 EOF
 
 test_todo_session 'do (and archive) task with note' <<EOF

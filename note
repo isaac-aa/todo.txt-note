@@ -97,7 +97,7 @@ getsearchresult () {
                                               # Get the name of the task without date and priority
                                               if ($0 ~ notetag){
                                                   header=$0
-                                                  sub(/^#.*....-..-../,  search, header)
+                                                  header = gensub(/^# (\([A-Z]\) )?....-..-../,  search, 1, header)
                                               }
 
                                               # If this section matches the date, start printing

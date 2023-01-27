@@ -91,7 +91,7 @@ getsearchresult () {
         # Searches based on dates
         searchresult=$(awk -v search=$2 -v notetag=${TODO_NOTE_TAG} '''
                                         {
-                                          if ($0 ~ /^#.*/){ # Start of a new section
+                                          if ($0 ~ /^#[[:space:]].*/){ # Start of a new section
                                               flag=0
 
                                               # Get the name of the task without date and priority
@@ -106,7 +106,7 @@ getsearchresult () {
                                               }
                                           }
                                           if (flag){
-                                              if ($0 ~ /^#/){
+                                              if ($0 ~ /^#[[:space:]]/){
                                                   # Print a modified header with the search date and the task name
                                                   print "# " header
                                               } else {
@@ -180,7 +180,7 @@ _format () {
                     } else if (words[i] ~ /^[A-Za-z0-9]+:[^ ]+$/) {
                         printf "%s", met_beg words[i] met_end
                     } else {
-                        if (words[1] ~ /^#/) {
+                        if (words[1] ~ /^#[[:space:]]/) {
                             printf "%s", head_beg words[i] head_end
                         } else {
                             printf "%s", words[i]
